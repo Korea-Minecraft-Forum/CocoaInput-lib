@@ -17,7 +17,7 @@ HIMC himc;
 LRESULT compositionLocationNotify(HWND hWnd){
     HIMC imc=NULL;
     float *rect= malloc(sizeof(float)*4);
-    CILog("ready call javaRect");
+    CIDebug("ready call javaRect");
     if (javaRect(rect)) {
         free(rect);
         return FALSE;
@@ -58,7 +58,7 @@ LRESULT CALLBACK wrapper_wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
             DWORD* clauses;
             LONG cursor=0;
             if (lParam & GCS_RESULTSTR) {
-                CILog("ResultStr");
+                CIDebug("ResultStr");
                 imc = ImmGetContext(hwnd);
                 textSize = ImmGetCompositionStringW(imc, GCS_RESULTSTR, NULL, 0);
                 length = textSize / (LONG) sizeof(WCHAR);
