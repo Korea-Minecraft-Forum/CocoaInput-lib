@@ -15,16 +15,16 @@ int preeditCalet(XIC xic,XPointer clientData,XPointer data){
     return 0;
 }
 int preeditStart(XIC xic,XPointer clientData,XPointer data){
-    CILog("Preedit start");
+    CIDebug("Preedit start");
     return 0;
 }
 int preeditDone(XIC xic,XPointer clientData,XPointer data){
-    CILog("Preedit end");
+    CIDebug("Preedit end");
     javaDone();
     return 0;
 }
 int preeditDraw(XIC xic,XPointer clientData,XPointer structptr){
-    CILog("Preedit draw start");
+    CIDebug("Preedit draw start");
     XIMPreeditDrawCallbackStruct* structure=(XIMPreeditDrawCallbackStruct*)structptr;
     int *array;
     int secondary=0;
@@ -44,7 +44,7 @@ int preeditDraw(XIC xic,XPointer clientData,XPointer structptr){
         }
     }
 
-    CILog("Invoke Javaside");
+    CIDebug("Invoke Javaside");
     if(structure->text){
         array=javaDraw(
             structure->caret,
@@ -81,7 +81,7 @@ int preeditDraw(XIC xic,XPointer clientData,XPointer structptr){
     attr=XVaCreateNestedList(0,XNSpotLocation,&place,NULL);
     XSetICValues(xic,XNPreeditAttributes,attr,NULL);
     XFree(attr);
-    CILog("Preedit draw end");
+    CIDebug("Preedit draw end");
     return 0;
 }
 
@@ -154,9 +154,9 @@ void initialize(
     
     setCallback(c_draw,c_done);
     
-    CILog("Window ptr:%p",(Window)xw);
-    CILog("GLFWwindow ptr:%p",(void*)waddr);
-    CILog("Searching _GLFWwindowx11 from GLFWwindow ptr...");
+    CIDebug("Window ptr:%p",(Window)xw);
+    CIDebug("GLFWwindow ptr:%p",(void*)waddr);
+    CIDebug("Searching _GLFWwindowx11 from GLFWwindow ptr...");
     int i;
     XIC ic=NULL;
     for(i=0;i<0x500;i++){
@@ -164,12 +164,12 @@ void initialize(
                 if(po!=xw)continue;
         x11c = (((_GLFWwindowX11*)(waddr+i)));
                 ic = (*(((_GLFWwindowX11*)(waddr+i)))).ic;
-                CILog("Found offset:%d ,_GLFWwindowX11(%p)=GLFWwindow(%p)+%d ",i,x11c,(void*)waddr,i);
+                CIDebug("Found offset:%d ,_GLFWwindowX11(%p)=GLFWwindow(%p)+%d ",i,x11c,(void*)waddr,i);
         break;
     }
-    CILog("XIC mem address:%p",x11c->ic);
+    CIDebug("XIC mem address:%p",x11c->ic);
         xim = XIMOfIC(ic);
-    CILog("XIM mem address:%p",xim);
+    CIDebug("XIM mem address:%p",xim);
     xwindow=xw;
     inactiveic = XCreateIC(
                 xim,
@@ -180,7 +180,7 @@ void initialize(
                 XNInputStyle,
                 XIMPreeditNone|XIMStatusNone,
                 NULL);
-    CILog("Created inactiveic-> default");
+    CIDebug("Created inactiveic-> default");
     activeic = XCreateIC(
                 xim,
                 XNClientWindow,
@@ -195,14 +195,14 @@ void initialize(
                 XNStatusAttributes,
                 statusCallbacksList(),
                 NULL);
-    CILog("Created activeic");
+    CIDebug("Created activeic");
     XSetICFocus(inactiveic);
     XUnsetICFocus(activeic);
-    CILog("Completed ic focus");
+    CIDebug("Completed ic focus");
     XDestroyIC(x11c->ic);
     x11c->ic = inactiveic;
-    CILog("Destroyed glfw ic");
-    CILog("CocoaInput X11 initializer done!");
+    CIDebug("Destroyed glfw ic");
+    CIDebug("CocoaInput X11 initializer done!");
 }
 
 void set_focus(int flag){
@@ -214,5 +214,5 @@ void set_focus(int flag){
         x11c->ic= inactiveic;
     }
         XSetICFocus(x11c->ic);
-    CILog("setFocused:%d",flag);
+    CIDebug("setFocused:%d",flag);
 }
