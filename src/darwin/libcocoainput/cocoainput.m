@@ -11,14 +11,18 @@
 #import "DataManager.h"
 
 void replaceInstanceMethod(Class cls, SEL sel, SEL renamedSel, Class dataCls) {
-    Method methodReplacedWith = class_getInstanceMethod(cls, sel);
-    IMP imp = method_getImplementation(methodReplacedWith);
-    const char* encoding = method_getTypeEncoding(methodReplacedWith);
-    class_addMethod(cls, renamedSel, imp, encoding);
-    methodReplacedWith = class_getInstanceMethod(dataCls, sel);
-    imp = method_getImplementation(methodReplacedWith);
-    encoding = method_getTypeEncoding(methodReplacedWith);
-    class_replaceMethod(cls, sel, imp, encoding);
+    Method addMethod = class_getInstanceMethod(cls, sel);
+    IMP addImp = method_getImplementation(addMethod);
+    const char* addEncoding = method_getTypeEncoding(addMethod);
+    BOOL addResult = class_addMethod(cls, renamedSel, addImp, addEncoding);
+    if (!addResult) {
+        CIDebug([NSString stringWithFormat:@"AddMethod Failed:\"%@\"", NSStringFromSelector(renamedSel)]);
+    }
+
+    Method replaceMethod = class_getInstanceMethod(dataCls, sel);
+    IMP replaceImp = method_getImplementation(replaceMethod);
+    const char* replaceEncoding = method_getTypeEncoding(replaceMethod);
+    class_replaceMethod(cls, sel, replaceImp, replaceEncoding);
 }
 
 void initialize(LogFunction log,LogFunction error,LogFunction debug){
