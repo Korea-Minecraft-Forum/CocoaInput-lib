@@ -36,7 +36,7 @@ static DataManager* instance = nil;
     return self;
 }
 
-- (void) modifyGLFWView{
+- (void) modifyGLFWView {
     NSView *view;
     while(1) {
         view = [[NSApp keyWindow] contentView];
@@ -46,7 +46,7 @@ static DataManager* instance = nil;
     }
 
     [[DataManager sharedManager] setGlfwView:view];
-    
+
     Class viewClass = [view class];
     Class dataClass = [[DataManager sharedManager] class];
     replaceInstanceMethod(viewClass, @selector(keyDown:), @selector(org_keyDown:), dataClass);
@@ -58,6 +58,14 @@ static DataManager* instance = nil;
     replaceInstanceMethod(viewClass, @selector(setMarkedText:selectedRange:replacementRange:), @selector(org_setMarkedText:selectedRange:replacementRange:), dataClass);
     replaceInstanceMethod(viewClass, @selector(unmarkText), @selector(org_unmarkText), dataClass);
 
+    if (@available(macOS 14.0, *)) {
+        NSTextInsertionIndicator *indicator = [[NSTextInsertionIndicator alloc] init];
+        indicator.frame = NSMakeRect(0, 0, 0, 0);
+        indicator.displayMode = NSTextInsertionIndicatorDisplayModeHidden;
+        [view addSubview: indicator];
+        CIDebug(@"Initialize Sonoma Invisible Indiciator");
+    }
+
     CIDebug([NSString stringWithFormat:@"SetView:\"%@\"", [view.class description]]);
     CILog(@"Complete to modify GLFWView");
 }
@@ -68,7 +76,15 @@ static DataManager* instance = nil;
         CIDebug(@"New keyEvent came and sent to textfield.");
         [self org_interpretKeyEvents:@[ theEvent ]];
     }
-    //NSLog(@"keydown %d %d %d\n",[DataManager sharedManager].hasPreeditText,[DataManager sharedManager].isSentedInsertText,[DataManager sharedManager].isBeforeActionSetMarkedText);
+
+    /*
+    CIDebug([NSString stringWithFormat:@"keydown %d %d %d\n",
+       [DataManager sharedManager].hasPreeditText,
+       [DataManager sharedManager].isSentedInsertText,
+       [DataManager sharedManager].isBeforeActionSetMarkedText
+    ]);
+    */
+
     if (
         [DataManager sharedManager].hasPreeditText == NO &&
         [DataManager sharedManager].isSentedInsertText == NO &&
@@ -107,10 +123,18 @@ static DataManager* instance = nil;
         sentString = [input cStringUsingEncoding:NSUTF8StringEncoding];
     }
     */
-    if ([[DataManager sharedManager] activeView] != nil) {
+
+    if (@available(macOS 14.0, *)) {
+        if ([[DataManager sharedManager] activeView] == nil) {
+            CIDebug(@"insertText ignored by Sonoma's Tooltip");
+        } else {
+            [[DataManager sharedManager] activeView].insertText("", 0, 0);
+            CIDebug([NSString stringWithFormat:@"MarkedText was determined:\"%@\"",input]);
+        }
+    } else {
         [[DataManager sharedManager] activeView].insertText("", 0, 0);
+        CIDebug([NSString stringWithFormat:@"MarkedText was determined:\"%@\"",input]);
     }
-    CIDebug([NSString stringWithFormat:@"MarkedText was determined:\"%@\"",input]);
     [self org_insertText:input replacementRange:replacementRange];//GLFWのオリジナルメソッドはCharEventを発行するので利用する
 }
 
@@ -126,31 +150,39 @@ static DataManager* instance = nil;
         sentString = [input cStringUsingEncoding:NSUTF8StringEncoding];
     }
 
-    CIDebug([NSString stringWithFormat:@"MarkedText changed:\"%@\"", [input description]]);
-    [[DataManager sharedManager] activeView].setMarkedText(sentString, SPLIT_NSRANGE(selectedRange), SPLIT_NSRANGE(replacementRange));
+    if (@available(macOS 14.0, *)) {
+        if ([[DataManager sharedManager] activeView] == nil) {
+            CIDebug(@"setMarkedText ignored by Sonoma's Tooltip");
+        } else {
+            CIDebug([NSString stringWithFormat:@"MarkedText changed:\"%@\"", [input description]]);
+            [[DataManager sharedManager] activeView].setMarkedText(sentString, SPLIT_NSRANGE(selectedRange), SPLIT_NSRANGE(replacementRange));
+        }
+    } else {
+        CIDebug([NSString stringWithFormat:@"MarkedText changed:\"%@\"", [input description]]);
+        [[DataManager sharedManager] activeView].setMarkedText(sentString, SPLIT_NSRANGE(selectedRange), SPLIT_NSRANGE(replacementRange));
+    }
     [self org_setMarkedText:input selectedRange:selectedRange replacementRange:replacementRange];
 }
 
 - (NSRect)firstRectForCharacterRange:(NSRange)aRange
                          actualRange:(NSRangePointer)actualRange {
-    CIDebug(@"Called to determine where to draw.");
-    NSRect lwjgl = [self org_firstRectForCharacterRange:aRange actualRange:actualRange]; // GLFWのオリジナルを呼び出すとウィンドウのポジションが得られるので利用する
-    if ([DataManager sharedManager].hasPreeditText == NO) {
-        return lwjgl;
+    // Check for Sonoma IME tooltip
+    if (@available(macOS 14.0, *)) {
+        if ([[DataManager sharedManager] activeView] == nil) {
+            return NSMakeRect(0, 0, 0, 0);
+        }
     }
 
-    float* rect;
-    if ([[DataManager sharedManager] activeView] != nil) {
-        rect = [[DataManager sharedManager] activeView].firstRectForCharacterRange();
-    } else {
-        return NSMakeRect(0, 0, 0, 0);
+    // Original behavior
+    CIDebug(@"Called to determine where to draw.");
+    if ([DataManager sharedManager].hasPreeditText == NO) {
+        return [self org_firstRectForCharacterRange:aRange actualRange:actualRange];
     }
-    CIDebug([NSString stringWithFormat:@"GLFW Rect:　\"%@\"", [NSString stringWithFormat:@"%.1f %.1f %.1f %.1f", lwjgl.origin.x, lwjgl.origin.y, lwjgl.size.width, lwjgl.size.height]]);
-    CIDebug([NSString stringWithFormat:@"Java Rect:　\"%@\"", [NSString stringWithFormat:@"%.1f %.1f %.1f %.1f", rect[0], rect[1], rect[2], rect[3]]]);
-    return NSMakeRect([[[DataManager sharedManager] glfwView] frame].size.width,
-                      [[[DataManager sharedManager] glfwView] frame].size.height,
-                      rect[2],
-                      rect[3]);
+
+    float *rect = malloc(4 * sizeof(float));
+    [[DataManager sharedManager] activeView].firstRectForCharacterRange(rect);
+    CIDebug([NSString stringWithFormat:@"Java Rect: \"%@\"", [NSString stringWithFormat:@"%.1f %.1f %.1f %.1f", rect[0], rect[1], rect[2], rect[3]]]);
+    return NSMakeRect(rect[0], [[DataManager sharedManager] glfwView].window.screen.frame.size.height - rect[1], rect[2], rect[3]);
 }
 
 - (BOOL)hasMarkedText {
@@ -162,9 +194,15 @@ static DataManager* instance = nil;
 }
 
 - (NSRange)markedRange {
-    if ([[DataManager sharedManager] activeView] != nil) {
-        [[DataManager sharedManager] activeView].insertText("", 0, 0);
+    // Check for Sonoma IME tooltip
+    if (@available(macOS 14.0, *)) {
+        if ([[DataManager sharedManager] activeView] == nil) {
+            return NSMakeRange(NSNotFound, 0);
+        }
     }
+
+    // Original behavior
+    [[DataManager sharedManager] activeView].insertText("", 0, 0);
     [self unmarkText];
     return NSMakeRange(NSNotFound, 0);
 }
@@ -194,7 +232,7 @@ static DataManager* instance = nil;
 - (void)org_unmarkText{}
 - (void)org_interpretKeyEvents:(NSArray*)eventArray{}
 - (NSRect)org_firstRectForCharacterRange:(NSRange)aRange
-                             actualRange:(NSRangePointer)actualRange{return NSMakeRect(0,0,0,0);}
+                             actualRange:(NSRangePointer)actualRange{ return NSMakeRect(0,0,0,0); }
 - (void)org_insertText:(id)aString replacementRange:(NSRange)replacementRange{}
 - (void)org_setMarkedText:(id)aString
             selectedRange:(NSRange)selectedRange

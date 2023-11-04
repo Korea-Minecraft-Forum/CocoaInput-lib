@@ -14,14 +14,12 @@
 void initialize(LogFunction log,LogFunction error,LogFunction debug);
 void replaceInstanceMethod(Class cls, SEL sel, SEL renamedSel, Class dataCls);
 
-void addInstance(const char* uuid,
-                 void (*insertText_p)(const char*, const int, const int),
-                 void (*setMarkedText_p)(const char*,
-                                         const int,
-                                         const int,
-                                         const int,
-                                         const int),
-                 float* (*firstRectForCharacterRange)(void));
+void addInstance(
+    const char* uuid,
+    void (*insertText_p)(const char*, const int, const int),
+    void (*setMarkedText_p)(const char*, const int, const int, const int, const int),
+    void (*firstRectForCharacterRange)(const float*)
+);
 void removeInstance(const char* uuid);
 void refreshInstance(void);
 

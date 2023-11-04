@@ -12,5 +12,5 @@
 @interface MinecraftView : NSObject
 @property void (*insertText)(const char*, const int, const int);
 @property void (*setMarkedText)(const char*, const int, const int, const int, const int);
-@property float* (*firstRectForCharacterRange)(void);
+@property void (*firstRectForCharacterRange)(const float*);
 @end

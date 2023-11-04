@@ -33,14 +33,12 @@ void initialize(LogFunction log,LogFunction error,LogFunction debug){
     [thread start];
 }
 
-void addInstance(const char* uuid,
-                 void (*insertText_p)(const char*, const int, const int),
-                 void (*setMarkedText_p)(const char*,
-                                         const int,
-                                         const int,
-                                         const int,
-                                         const int),
-                 float* (*firstRectForCharacterRange_p)(void)) {
+void addInstance(
+    const char* uuid,
+    void (*insertText_p)(const char*, const int, const int),
+    void (*setMarkedText_p)(const char*, const int, const int, const int, const int),
+    void (*firstRectForCharacterRange_p)(const float*)
+) {
     CIDebug([NSString stringWithFormat:@"New textfield %s has registered.", uuid]);
     MinecraftView* mc = [[MinecraftView alloc] init];
     mc.insertText = insertText_p;
