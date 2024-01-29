@@ -17,8 +17,8 @@ jobs:
           - os: windows-2022
             name: "Windows Server 2022 x64"
 
-          - os: macos-12
-            name: "macOS 12 (Universal)"
+          #- os: macos-12
+          #  name: "macOS 12 (Universal)"
 
     steps:
       - name: Checkout
