@@ -162,5 +162,5 @@ int getKeyboardLayout() {
 int getStatus() {
     DWORD conversion;
     ImmGetConversionStatus(himc, &conversion, NULL);
-    return conversion;
+    return conversion & IME_CMODE_NATIVE;
 }
