@@ -53,7 +53,7 @@ LRESULT CALLBACK wrapper_wndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lPar
         case WM_IME_COMPOSITION: {
             HIMC imc = NULL;
             LONG textSize, attrSize, clauseSize;
-            int focusedBlock, length;
+            int length;
             LPWSTR buffer;
             LPSTR attributes;
             DWORD *clauses;
@@ -153,4 +153,14 @@ void set_focus(int flag) {
     } else {
         himc = ImmAssociateContext(hwnd, 0);
     }
+}
+
+int getKeyboardLayout() {
+    return LOWORD(GetKeyboardLayout(0));
+}
+
+int getStatus() {
+    DWORD conversion;
+    ImmGetConversionStatus(himc, &conversion, NULL);
+    return conversion;
 }

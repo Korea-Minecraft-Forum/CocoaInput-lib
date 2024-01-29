@@ -15,3 +15,7 @@ void initialize(
 );
 
 void set_focus(int flag);
+
+int getKeyboardLayout();
+
+int getStatus();
