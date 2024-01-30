@@ -25,3 +25,5 @@ void refreshInstance(void);
 
 void discardMarkedText(const char* uuid);
 void setIfReceiveEvent(const char* uuid, int yn);
+
+const char* getStatus(void);

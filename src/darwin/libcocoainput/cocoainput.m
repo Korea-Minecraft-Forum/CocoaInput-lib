@@ -92,3 +92,11 @@ float invertYCoordinate(float y) {
     return [[NSScreen mainScreen] visibleFrame].size.height +
     [[NSScreen mainScreen] visibleFrame].origin.y - y;
 }
+
+const char* getStatus(void) {
+    if ([DataManager sharedManager].activeView == nil) {
+        return nil;
+    }
+
+    return [[NSTextInputContext currentInputContext].selectedKeyboardInputSource cStringUsingEncoding:NSUTF8StringEncoding];
+}
