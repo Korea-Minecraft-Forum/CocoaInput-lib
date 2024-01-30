@@ -10,37 +10,37 @@ struct {
     LogFunction debug;
 } LogPointer;
 
-void CILog(const char* format,...) {
+void CILog(const char *format, ...) {
     char *msg;
     va_list args;
-    va_start(args,format);
-    vasprintf(&msg,format,args);
+    va_start(args, format);
+    vasprintf(&msg, format, args);
     LogPointer.log(msg);
     free(msg);
     va_end(args);
 }
 
-void CIError(const char* format,...) {
+void CIError(const char *format, ...) {
     char *msg;
     va_list args;
-    va_start(args,format);
-    vasprintf(&msg,format,args);
+    va_start(args, format);
+    vasprintf(&msg, format, args);
     LogPointer.error(msg);
     free(msg);
     va_end(args);
 }
 
-void CIDebug(const char* format,...) {
+void CIDebug(const char *format, ...) {
     char *msg;
     va_list args;
-    va_start(args,format);
-    vasprintf(&msg,format,args);
+    va_start(args, format);
+    vasprintf(&msg, format, args);
     LogPointer.debug(msg);
     free(msg);
     va_end(args);
 }
 
-void initLogPointer(LogFunction log,LogFunction error,LogFunction debug) {
+void initLogPointer(LogFunction log, LogFunction error, LogFunction debug) {
     LogPointer.log = log;
     LogPointer.error = error;
     LogPointer.debug = debug;

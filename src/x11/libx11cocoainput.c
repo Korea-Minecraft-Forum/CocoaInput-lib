@@ -1,66 +1,66 @@
 #include "libx11cocoainput.h"
 
 void (*javaDone)();
-int* (*javaDraw)(int,int,int,short,int,char*,wchar_t*,int,int,int);
-XICCallback calet,start,done,draw;
-XICCallback s_start,s_done,s_draw;
+int *(*javaDraw)(int, int, int, short, int, char *, wchar_t *, int, int, int);
+XICCallback calet, start, done, draw;
+XICCallback s_start, s_done, s_draw;
 
-void setCallback(int*(*c_draw)(int,int,int,short,int,char*,wchar_t*,int,int,int),void(*c_done)()){
-    javaDraw=c_draw;
-    javaDone=c_done;
+void setCallback(int *(*c_draw)(int, int, int, short, int, char *, wchar_t *, int, int, int), void (*c_done)()) {
+    javaDraw = c_draw;
+    javaDone = c_done;
 }
 
-
-int preeditCalet(XIC xic,XPointer clientData,XPointer data){
+int preeditCalet(XIC xic, XPointer clientData, XPointer data) {
     return 0;
 }
-int preeditStart(XIC xic,XPointer clientData,XPointer data){
+int preeditStart(XIC xic, XPointer clientData, XPointer data) {
     CIDebug("Preedit start");
     return 0;
 }
-int preeditDone(XIC xic,XPointer clientData,XPointer data){
+int preeditDone(XIC xic, XPointer clientData, XPointer data) {
     CIDebug("Preedit end");
     javaDone();
     return 0;
 }
-int preeditDraw(XIC xic,XPointer clientData,XPointer structptr){
+int preeditDraw(XIC xic, XPointer clientData, XPointer structptr) {
     CIDebug("Preedit draw start");
-    XIMPreeditDrawCallbackStruct* structure=(XIMPreeditDrawCallbackStruct*)structptr;
+    XIMPreeditDrawCallbackStruct *structure = (XIMPreeditDrawCallbackStruct *)structptr;
     int *array;
-    int secondary=0;
-    int length=0;
-    if(structure->text){
-        int i=0;
-        int secondary_determined=0;
-        for(i=0;i!=structure->text->length;i++){
-            if(!secondary_determined&&structure->text->feedback[i]!=XIMUnderline){
-                secondary=i;
-                secondary_determined=1;
+    int secondary = 0;
+    int length = 0;
+    if (structure->text) {
+        int i = 0;
+        int secondary_determined = 0;
+        for (i = 0; i != structure->text->length; i++) {
+            if (!secondary_determined && structure->text->feedback[i] != XIMUnderline) {
+                secondary = i;
+                secondary_determined = 1;
             }
-            if(secondary_determined&&(structure->text->feedback[i]==0||structure->text->feedback[i]!=XIMUnderline)){
+            if (secondary_determined && (structure->text->feedback[i] == 0 || structure->text->feedback[i] != XIMUnderline)) {
                 length++;
+            } else if (secondary_determined) {
+                break;
             }
-            else if(secondary_determined)break;
         }
     }
 
     CIDebug("Invoke Javaside");
-    if(structure->text){
-        array=javaDraw(
+    if (structure->text) {
+        array = javaDraw(
             structure->caret,
             structure->chg_first,
             structure->chg_length,
             structure->text->length,
             structure->text->encoding_is_wchar,
-            structure->text->encoding_is_wchar?"":structure->text->string.multi_byte,
-            structure->text->encoding_is_wchar?structure->text->string.wide_char:L"",
+            structure->text->encoding_is_wchar ? "" : structure->text->string.multi_byte,
+            structure->text->encoding_is_wchar ? structure->text->string.wide_char : L"",
             0,
             secondary,
-            secondary+length
+            secondary + length
         );
     }
     else {
-        array=javaDraw(
+        array = javaDraw(
             structure->caret,
             structure->chg_first,
             structure->chg_length,
@@ -70,41 +70,43 @@ int preeditDraw(XIC xic,XPointer clientData,XPointer structptr){
             L"",
             0,
             0,
-            0		
+            0
         );
     }
-    
-    //TODO なんとかしてon-the-spotの候補ウィンドウをちゃんとした位置にしたいね（願望）
+
+    // TODO なんとかしてon-the-spotの候補ウィンドウをちゃんとした位置にしたいね（願望）
     XVaNestedList attr;
     XPoint place;
-    place.x=array[0];place.y=array[1];
-    attr=XVaCreateNestedList(0,XNSpotLocation,&place,NULL);
-    XSetICValues(xic,XNPreeditAttributes,attr,NULL);
+    place.x = array[0];
+    place.y = array[1];
+    attr = XVaCreateNestedList(0, XNSpotLocation, &place, NULL);
+    XSetICValues(xic, XNPreeditAttributes, attr, NULL);
     XFree(attr);
     CIDebug("Preedit draw end");
     return 0;
 }
 
-int statusStart(XIC xic,XPointer clientData,XPointer data){
+int statusStart(XIC xic, XPointer clientData, XPointer data) {
     return 0;
 }
-int statusDone(XIC xic,XPointer clientData,XPointer data){
+int statusDone(XIC xic, XPointer clientData, XPointer data) {
     return 0;
 }
-int statusDraw(XIC xic,XPointer clientData,XPointer data/*,XIMStatusDrawCallbackStruct *structure*/){
+int statusDraw(XIC xic, XPointer clientData, XPointer data /*,XIMStatusDrawCallbackStruct *structure*/) {
     return 0;
 }
 
-XVaNestedList preeditCallbacksList(){
-    calet.client_data=NULL;
-    start.client_data=NULL;
-    done.client_data=NULL;
-    draw.client_data=NULL;
-    calet.callback=preeditCalet;
-    start.callback=preeditStart;
-    done.callback=preeditDone;
-    draw.callback=preeditDraw;
-    return XVaCreateNestedList(0,
+XVaNestedList preeditCallbacksList() {
+    calet.client_data = NULL;
+    start.client_data = NULL;
+    done.client_data = NULL;
+    draw.client_data = NULL;
+    calet.callback = preeditCalet;
+    start.callback = preeditStart;
+    done.callback = preeditDone;
+    draw.callback = preeditDraw;
+    return XVaCreateNestedList(
+        0,
         XNPreeditStartCallback,
         &start,
         XNPreeditCaretCallback,
@@ -112,89 +114,97 @@ XVaNestedList preeditCallbacksList(){
         XNPreeditDoneCallback,
         &done,
         XNPreeditDrawCallback,
-        &draw,NULL);
+        &draw,
+        NULL
+    );
 }
 
-XVaNestedList statusCallbacksList(){
-    s_start.client_data=NULL;
-    s_done.client_data=NULL;
-    s_draw.client_data=NULL;
-    s_start.callback=statusStart;
-    s_done.callback=statusDone;
-    s_draw.callback=statusDraw;
-    return XVaCreateNestedList(0,
+XVaNestedList statusCallbacksList() {
+    s_start.client_data = NULL;
+    s_done.client_data = NULL;
+    s_draw.client_data = NULL;
+    s_start.callback = statusStart;
+    s_done.callback = statusDone;
+    s_draw.callback = statusDraw;
+    return XVaCreateNestedList(
+        0,
         XNStatusStartCallback,
         &s_start,
         XNStatusDoneCallback,
         &s_done,
         XNStatusDrawCallback,
-        &s_draw,NULL);
+        &s_draw,
+        NULL
+    );
 }
 
-_GLFWwindowX11 * x11c; //_GLFWwindowX11のアドレス
-XIM xim; //_GLFWwindowX11が保持するXIM
-Window xwindow; //
+_GLFWwindowX11 *x11c; //_GLFWwindowX11のアドレス
+XIM xim;              //_GLFWwindowX11が保持するXIM
+Window xwindow;       //
 
-
-XIC activeic; // IMが有効なIC
-XIC inactiveic; //IMが無効なIC
-
+XIC activeic;   // IMが有効なIC
+XIC inactiveic; // IMが無効なIC
 
 void initialize(
     long waddr,
     long xw,
-    int*(*c_draw)(int,int,int,short,int,char*,wchar_t*,int,int,int),
-    void(*c_done)(),
+    int *(*c_draw)(int, int, int, short, int, char *, wchar_t *, int, int, int),
+    void (*c_done)(),
     LogFunction log,
     LogFunction error,
     LogFunction debug
-    ){
-    initLogPointer(log,error,debug);
-    CILog("CocoaInput X11 Clang Initializer start. library compiled at  %s %s",__DATE__,__TIME__);
-    
-    setCallback(c_draw,c_done);
-    
-    CIDebug("Window ptr:%p",(Window)xw);
-    CIDebug("GLFWwindow ptr:%p",(void*)waddr);
+) {
+    initLogPointer(log, error, debug);
+    CILog("CocoaInput X11 Clang Initializer start. library compiled at  %s %s", __DATE__, __TIME__);
+
+    setCallback(c_draw, c_done);
+
+    CIDebug("Window ptr:%p", (Window)xw);
+    CIDebug("GLFWwindow ptr:%p", (void *)waddr);
     CIDebug("Searching _GLFWwindowx11 from GLFWwindow ptr...");
     int i;
-    XIC ic=NULL;
-    for(i=0;i<0x500;i++){
-        Window po = (*(((_GLFWwindowX11*)(waddr+i)))).handle;
-                if(po!=xw)continue;
-        x11c = (((_GLFWwindowX11*)(waddr+i)));
-                ic = (*(((_GLFWwindowX11*)(waddr+i)))).ic;
-                CIDebug("Found offset:%d ,_GLFWwindowX11(%p)=GLFWwindow(%p)+%d ",i,x11c,(void*)waddr,i);
+    XIC ic = NULL;
+    for (i = 0; i < 0x500; i++) {
+        Window po = (*(((_GLFWwindowX11 *)(waddr + i)))).handle;
+        if (po != xw) {
+            continue;
+        }
+
+        x11c = (((_GLFWwindowX11 *)(waddr + i)));
+        ic = (*(((_GLFWwindowX11 *)(waddr + i)))).ic;
+        CIDebug("Found offset:%d ,_GLFWwindowX11(%p)=GLFWwindow(%p)+%d ", i, x11c, (void *)waddr, i);
         break;
     }
-    CIDebug("XIC mem address:%p",x11c->ic);
-        xim = XIMOfIC(ic);
-    CIDebug("XIM mem address:%p",xim);
-    xwindow=xw;
+    CIDebug("XIC mem address:%p", x11c->ic);
+    xim = XIMOfIC(ic);
+    CIDebug("XIM mem address:%p", xim);
+    xwindow = xw;
     inactiveic = XCreateIC(
-                xim,
-                XNClientWindow,
-                (Window)xwindow,
-                XNFocusWindow,
-                (Window)xwindow,
-                XNInputStyle,
-                XIMPreeditNone|XIMStatusNone,
-                NULL);
+        xim,
+        XNClientWindow,
+        (Window)xwindow,
+        XNFocusWindow,
+        (Window)xwindow,
+        XNInputStyle,
+        XIMPreeditNone | XIMStatusNone,
+        NULL
+    );
     CIDebug("Created inactiveic-> default");
     activeic = XCreateIC(
-                xim,
-                XNClientWindow,
-                xwindow,
-                XNFocusWindow,
-                xwindow,
-                XNInputStyle,
-                XIMPreeditCallbacks|XIMStatusNone,
-                //XIMPreeditNothing|XIMStatusNothing,
-                XNPreeditAttributes,
-                preeditCallbacksList(),
-                XNStatusAttributes,
-                statusCallbacksList(),
-                NULL);
+        xim,
+        XNClientWindow,
+        xwindow,
+        XNFocusWindow,
+        xwindow,
+        XNInputStyle,
+        XIMPreeditCallbacks | XIMStatusNone,
+        // XIMPreeditNothing | XIMStatusNothing,
+        XNPreeditAttributes,
+        preeditCallbacksList(),
+        XNStatusAttributes,
+        statusCallbacksList(),
+        NULL
+    );
     CIDebug("Created activeic");
     XSetICFocus(inactiveic);
     XUnsetICFocus(activeic);
@@ -205,14 +215,13 @@ void initialize(
     CIDebug("CocoaInput X11 initializer done!");
 }
 
-void set_focus(int flag){
+void set_focus(int flag) {
     XUnsetICFocus(x11c->ic);
-    if(flag){
-        x11c->ic=activeic;
+    if (flag) {
+        x11c->ic = activeic;
+    } else {
+        x11c->ic = inactiveic;
     }
-    else{
-        x11c->ic= inactiveic;
-    }
-        XSetICFocus(x11c->ic);
-    CIDebug("setFocused:%d",flag);
+    XSetICFocus(x11c->ic);
+    CIDebug("setFocused:%d", flag);
 }

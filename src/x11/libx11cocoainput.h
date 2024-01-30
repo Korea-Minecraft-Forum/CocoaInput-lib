@@ -1,7 +1,7 @@
-//#include <GLFW/glfw3.h>
+// #include <GLFW/glfw3.h>
 #include <X11/Xlib.h>
-//#include "internal.h"
-//#include "x11_platform.h"
+// #include "internal.h"
+// #include "x11_platform.h"
 #include <stdio.h>
 
 #include <X11/X.h>
@@ -43,12 +43,11 @@ typedef struct _GLFWwindowX11
 
 } _GLFWwindowX11;
 
-
 void initialize(
     long waddr,
     long xw,
-    int*(*c_draw)(int,int,int,short,int,char*,wchar_t*,int,int,int),
-    void(*c_done)(),
+    int *(*c_draw)(int, int, int, short, int, char *, wchar_t *, int, int, int),
+    void (*c_done)(),
     LogFunction log,
     LogFunction error,
     LogFunction debug
