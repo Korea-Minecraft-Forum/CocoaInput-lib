@@ -14,9 +14,13 @@ Native libraries to support CJK _(Chinese, Japanese, Korean)_ IME in Java applic
 
   2. Compile native library<br>
   (Run one of below scripts which is your platform.)
-  - `build_macOS.sh` - For macOS
-  - `build_Windows.sh` - For Windows
-  - `build_X11.sh` - For Linux(X11)
+
+  - CocoaInput-lib
+    - `build_macOS.sh` - For macOS
+    - `build_Windows.sh` - For Windows
+    - `build_X11.sh` - For Linux(X11)
+  - caramelChat Library
+    - **[BETA]** `build_Wayland.sh` - For Linux(Wayland)
 
 ## License
 Use the license of the original project.
