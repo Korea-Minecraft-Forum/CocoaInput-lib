@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: '(Windows) Setup MSYS2'
         if: runner.os == 'Windows'
@@ -50,10 +50,12 @@ jobs:
 
       - name: '(Linux Wayland) Build caramelChat-lib'
         if: runner.os == 'Linux'
-        run: ./build_Wayland.sh
+        run: |
+          sudo apt-get install -y libwayland-dev wayland-protocols
+          ./build_Wayland.sh
 
       - name: Upload Library
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: CocoaInput-lib_${{ runner.os }}
           path: build/
