@@ -167,6 +167,7 @@ void initialize(
     struct wl_registry* _registry = wl_display_get_registry(display);
     wl_registry_add_listener(_registry, &_registryListener, NULL);
     wl_display_dispatch(display);
+    wl_display_roundtrip(display);
 
     if (!wlSeat) {
         CIError("Critical Error!!!");
